@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Chat WD</string>
+    <string name="SearchtButton">Search for devices</string>
+    <string name="send">send</string>
+    <string name="write_here">Write here</string>
+    <string name="key">key</string>
+    <string name="encryption_algorithm">Encryption Algorithm</string>
+    <string name="other_device_name">other device name</string>
+    <string name="option_select">select option</string>
+</resources>
