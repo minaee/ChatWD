@@ -21,10 +21,6 @@ import org.apache.commons.codec.binary.Hex;
 public class EncryptionRSA {
 
     KeyPairGenerator kpg;
-
-    public EncryptionRSA() {
-    }
-
     KeyPair kp;
     PublicKey publicKey;
     PrivateKey privateKey;
@@ -32,16 +28,25 @@ public class EncryptionRSA {
     Cipher cipher,cipher1;
     String encrypted,decrypted;
 
-    public byte[] RSAEncrypt(final String plain) throws NoSuchAlgorithmException, NoSuchPaddingException,
-            InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        kpg = KeyPairGenerator.getInstance("RSA");
+    public EncryptionRSA() throws NoSuchAlgorithmException {
+        try {
+            kpg = KeyPairGenerator.getInstance("RSA");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
         kpg.initialize(1024);
         kp = kpg.genKeyPair();
         publicKey = kp.getPublic();
         privateKey = kp.getPrivate();
+    }
+
+
+    public byte[] RSAEncrypt(final String plain, PublicKey myPublicKey) throws NoSuchAlgorithmException, NoSuchPaddingException,
+            InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+
 
         cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        cipher.init(Cipher.ENCRYPT_MODE, myPublicKey);
         encryptedBytes = cipher.doFinal(plain.getBytes());
         System.out.println("EEncrypted?????" + new String(org.apache.commons.codec.binary.Hex.encodeHex(encryptedBytes)));
         return encryptedBytes;
@@ -51,7 +56,7 @@ public class EncryptionRSA {
             InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 
         cipher1 = Cipher.getInstance("RSA");
-        cipher1.init(Cipher.DECRYPT_MODE, privateKey);
+        cipher1.init(Cipher.DECRYPT_MODE, privateKey); //privateKey);
         decryptedBytes = cipher1.doFinal(encryptedBytes);
         decrypted = new String(decryptedBytes);
         System.out.println("DDecrypted?????" + decrypted);

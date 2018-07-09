@@ -24,19 +24,54 @@
         app:layout_constraintTop_toBottomOf="@id/otherDeviceName"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/key"
+        app:layout_constraintBottom_toTopOf="@id/relativeLayout_key"
         android:text="@string/encryption_algorithm"/>
 
 
-    <TextView
-        android:id="@+id/key"
-        android:layout_width="wrap_content"
+
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout_key"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/encryptionAlgo"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout_msg"
-        android:text="@string/key" />
+        app:layout_constraintBottom_toBottomOf="@+id/linearLayout_msg"  >
+
+
+        <TextView
+            android:id="@+id/myKey"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
+            android:text="@string/key" />
+
+        <TextView
+            android:id="@+id/opponentKey"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toEndOf="@+id/myKey"
+            android:layout_toLeftOf="@+id/sendKey"
+            android:layout_toRightOf="@+id/myKey"
+            android:layout_toStartOf="@+id/sendKey"
+            android:text="@string/key" />
+
+
+        <Button
+            android:id="@+id/sendKey"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:onClick="sendKeyToOpponent"
+            android:text="@string/send"
+            android:visibility="invisible" />
+
+    </RelativeLayout>
 
 
     <LinearLayout
@@ -49,7 +84,7 @@
         app:layout_constraintBottom_toTopOf="@id/relativeLayout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/key">
+        app:layout_constraintTop_toBottomOf="@id/relativeLayout_key">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -94,6 +129,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
             android:cursorVisible="true"
             android:hint="@string/write_here" />

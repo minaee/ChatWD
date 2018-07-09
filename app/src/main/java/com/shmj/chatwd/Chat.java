@@ -30,7 +30,7 @@ import java.util.ArrayList;
 public class Chat extends AppCompatActivity {
 
     TextView otherDevicename, encyprionAlgo, key;
-    Button sendButton;
+    Button sendButton, sendKey;
     EditText textTosend;
 
     static String  msgToSend;
@@ -41,8 +41,9 @@ public class Chat extends AppCompatActivity {
     WifiP2pInfo wifiP2pInfo;
     public EncryptionAES encryptionAES;
     //String secretKeyString = "1111111111111111";   //16 digit secret key   AES
-    //String secretKeyString = "11111111";   //16 digit secret key DES
-    String secretKeyString = "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"; // RSA
+    String secretKeyString = "11111111";   //16 digit secret key DES
+
+    public EncryptionRSA encryptionRSA;
 
     public static ArrayList<String> encrypted_msg_content = new ArrayList<>();
     public static ArrayAdapter encrypted_msg_adapter;
@@ -52,6 +53,8 @@ public class Chat extends AppCompatActivity {
     public static ArrayAdapter decrypted_msg_adapter;
     String otherDeviceName;
     public String  encrypted_msg = null;
+
+    boolean rsaOrNot  ;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -65,12 +68,10 @@ public class Chat extends AppCompatActivity {
         serverOrClient = getIntent().getBooleanExtra("serverOrClient",true);
         wifiP2pInfo = getIntent().getExtras().getParcelable("WifiP2pInfo");
         otherDeviceName  = getIntent().getExtras().getParcelable("otherDeviceName");
+        rsaOrNot = getIntent().getBooleanExtra("rsaOrNot", true);
 
-        /*if(serverOrClient == false){
-            Log.i("WPI chat client" , wifiP2pInfo.toString() );
-        }else{
-            Log.i("WPI chat server" , wifiP2pInfo.toString() );
-        }*/
+
+
 
         // creating server o client instances
         if(wifiP2pInfo != null) {
@@ -79,11 +80,12 @@ public class Chat extends AppCompatActivity {
 
         // initializing Views
         sendButton = (Button) findViewById(R.id.sendButton);
+        sendKey = (Button) findViewById(R.id.sendKey);
         textTosend = (EditText) findViewById(R.id.textToSend);
         decrypted_messages = (ListView) findViewById(R.id.decrypt_messages);
         encrypted_messages = (ListView) findViewById(R.id.encrypt_messages);
         encyprionAlgo = (TextView) findViewById(R.id.otherDeviceName);
-        key = (TextView) findViewById(R.id.key);
+        key = (TextView) findViewById(R.id.myKey);
 
         //setting adapter for listview(chat messages)
         decrypted_msg_adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, decrypted_msg_content );
@@ -97,61 +99,88 @@ public class Chat extends AppCompatActivity {
         otherDevicename = (TextView) findViewById(R.id.otherDeviceName);
         otherDevicename.setText("this is a new chat with: " + otherDeviceName);
         encyprionAlgo.setText( encyprionAlgo.getText().toString() + "AES");
-        key.setText(key.getText().toString() + secretKeyString);
+        //key.setText(key.getText().toString() + secretKeyString);
         msgToSend = "thisShitIsNull";
 
         try {
             encryptionAES = new EncryptionAES(secretKeyString.getBytes());
+            encryptionRSA = new EncryptionRSA();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+
+
+        //rsaOrNot = true;
+        if(rsaOrNot = true){
+            sendKey.setVisibility(View.VISIBLE);
+            sendButton.setEnabled(false);
+        }
+
     }
 
     public void showMsg(String message){
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
-    public static String getMsgToSend() {
-        return msgToSend;
+    public void sendKeyToOpponent(View view){
+        if(serverOrClient == true ){ // for server
+                /*boolean isExchanged =server.exchangeKey();
+            if(isExchanged = true){
+                sendButton.setEnabled(true);
+            }*/
+            Log.i("msg to send server: ",msgToSend);
+
+        }else if(serverOrClient == false && encrypted_msg != null){    // for client
+
+            boolean isExchanged = client.exchangeKey();
+            if(isExchanged == true){
+                sendButton.setEnabled(true);
+            }
+            Log.i("msg to send client: ",msgToSend);
+
+        } else {
+            Log.i("encrypted message: ", "is null.");
+            showMsg("encrypted message is null.");
+        }
     }
 
     public void sendButton(View view){
         EditText textTosend2 = (EditText) findViewById(R.id.textToSend);
         if(String.valueOf(textTosend2.getText()) != null){
             msgToSend = String.valueOf(textTosend2.getText());
-            //showMsg(msgToSend+" from Fucking Send.");
 
-            //encrypt msg before sending
 
-            try {
-                //encrypted_msg = encryptionAES.encryptMSG(secretKeyString, msgToSend);
-                encrypted_msg = encryptionAES.encrypt(msgToSend);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
 
             if(serverOrClient == true && encrypted_msg != null){ // for server
-                /*updateMessagesfromServer("");
-                server = new Server(  wifiP2pInfo.groupOwnerAddress );
-                server.start();*/
 
-                //server.write(msgToSend.getBytes());
-                server.write(encrypted_msg.getBytes());
-                //msg_content.add("server: " + msgToSend.toString());
-                //msg_adapter.notifyDataSetChanged();
+                if( rsaOrNot = true){
+                    server.write(msgToSend.getBytes());
+
+                }else {
+                    try {
+                        //encrypted_msg = encryptionAES.encryptMSG(secretKeyString, msgToSend);
+                        encrypted_msg = encryptionAES.encrypt(msgToSend);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    server.write(encrypted_msg.getBytes());
+                }
                 Log.i("msg to send server: ",msgToSend);
-                //server.sendFromServer(String.valueOf(textTosend));
-                //server.sendFromServer(String.valueOf(msgToSend));
+
             }else if(serverOrClient == false && encrypted_msg != null){    // for client
-                /*updateMessagesfromClient("");
-                client = new Client(  wifiP2pInfo.groupOwnerAddress );
-                client.start();*/
-                client.write(encrypted_msg.getBytes());
-                //msg_content.add("client: " + msgToSend.toString());
-                //msg_adapter.notifyDataSetChanged();
-                Log.i("msg to send client: ",msgToSend);
-//            client.sendFromClient(String.valueOf(textTosend));
-                //client.sendFromClient(String.valueOf(msgToSend));
+
+                if(rsaOrNot == true ){
+                    client.write(msgToSend.getBytes());
+                }else {
+                    try {
+                        encrypted_msg = encryptionAES.encrypt(msgToSend);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    client.write(encrypted_msg.getBytes());
+
+                    Log.i("msg to send client: ", msgToSend);
+                }
             } else {
                 Log.i("encrypted message: ", "is null.");
                 showMsg("encrypted message is null.");

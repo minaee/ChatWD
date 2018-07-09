@@ -57,6 +57,8 @@ public class MainActivity extends AppCompatActivity  {
 
     String otherDeviceName = "";
 
+    boolean rsaOrNot = true;
+
     public void showMsg (String message){
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
@@ -238,6 +240,7 @@ public class MainActivity extends AppCompatActivity  {
         chatPage = new Intent(getApplicationContext(), Chat.class).putExtra("serverOrClient",serverOrClient);
         chatPage.putExtra("WifiP2pInfo",wifiP2pInfo);
         chatPage.putExtra("otherDeviceName", otherDeviceName);
+        chatPage.putExtra("rsaOrNot", rsaOrNot);
         startActivity(chatPage);
     }
 

@@ -14,32 +14,61 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/listitem"
+        app:layout_constraintBottom_toTopOf="@id/linearLayout_algo"
         android:onClick="search" />
 
-    <Spinner
-        android:id="@+id/algoPicker"
+    <LinearLayout
+
+        android:id="@+id/linearLayout_algo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@id/listitem"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/searchButton"
-        app:layout_constraintBottom_toTopOf="@id/listitem"
-        android:spinnerMode="dropdown"
-        android:prompt="@string/option_select"
+        app:layout_constraintTop_toBottomOf="@id/searchButton"  >
 
-        />
+        <RadioGroup
+            android:id="@+id/radioAlgo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginHorizontal="@android:dimen/app_icon_size">
+
+            <RadioButton
+                android:id="@+id/radioAES"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/aes"
+                android:layout_marginRight="@android:dimen/app_icon_size"/>
+
+            <RadioButton
+                android:id="@+id/radioDES"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/des"
+                android:layout_marginRight="@android:dimen/app_icon_size" />
+
+            <RadioButton
+                android:id="@+id/radioRSA"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/rsa" />
+
+        </RadioGroup>
+
+    </LinearLayout>
+
 
     <ListView
         android:id="@+id/listitem"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/algoPicker"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginTop="@android:dimen/notification_large_icon_height"
-        android:layout_marginBottom="@android:dimen/notification_large_icon_height" />
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout_algo" />
 
 
 
