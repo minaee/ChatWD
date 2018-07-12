@@ -47,7 +47,8 @@ public class Client extends Thread {
     public EncryptionRSA encryptionRSA;
     PublicKey client_publicKey=null, server_publicKey=null;
 
-    boolean rsaOrNot, aesordes, exchangedFlag=false ;
+    boolean rsaOrNot, aesordes;
+    public boolean exchangedFlag;
 
 
     public Client(InetAddress address, Chat chatActivity){
@@ -97,7 +98,6 @@ public class Client extends Thread {
 
     private void communication() {
         Socket socket = null;
-
 
         try {
             socket = new Socket(address, PORT);
