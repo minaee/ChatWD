@@ -45,7 +45,8 @@ public class Client extends Thread {
     String decrypted_msg = null;
 
     public EncryptionRSA encryptionRSA;
-    PublicKey client_publicKey=null, server_publicKey=null;
+    PublicKey client_publicKey = null;
+    PublicKey server_publicKey = null;
 
     boolean rsaOrNot, aesordes;
     public boolean exchangedFlag;
@@ -88,12 +89,12 @@ public class Client extends Thread {
             }
         }
         communication();
-        try {
+        /*try {
             socket = new Socket(address, Server.PORT);
         } catch (IOException e) {
             e.printStackTrace();
             Log.e("Error: ", e.getMessage().toString());
-        }
+        }*/
     }
 
     private void communication() {
@@ -113,11 +114,19 @@ public class Client extends Thread {
             byte[] buffer = new byte[1024];
             int bytes;
             while(server_publicKey == null){
+                Log.i("try", "1");
+
                 try {
-                    oStream.write(client_publicKey.getEncoded());
-                    if(client_publicKey != null && iStream != null) {
+                    Log.i("try", "2");
+
+                    if(client_publicKey != null) {
+                        oStream.write(client_publicKey.getEncoded());
+                    }else{
+                        Log.i("clientpubkey is","null");
+                    }
+                    if( iStream != null ) {
                         bytes = iStream.read(buffer);
-                        Log.i("number of bytes: ", String.valueOf(bytes));
+                        Log.i("buffer serverkey: ", String.valueOf(bytes));
                         if (bytes == -1) {
                             break;
                         }
@@ -131,8 +140,10 @@ public class Client extends Thread {
                             Log.i("server_publicKey", server_publicKey.toString() + " in keyexchanged of client");
                             chatActivity.updateMessagesfromServer("server public key", server_publicKey.toString());
                         }
-                    }
+                    }else {
+                        Log.i("client_publicKey while", "null.");
 
+                    }
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -143,6 +154,7 @@ public class Client extends Thread {
                 }
                 if(server_publicKey != null) {
                     exchangedFlag = true;
+                    break;
                 }else {
                     exchangedFlag = false;
                 }

@@ -51,7 +51,8 @@ public class Server extends Thread {
     public byte[] decrypted_msg = null;
 
     public EncryptionRSA encryptionRSA;
-    PublicKey client_publicKey=null, server_publicKey=null;
+    PublicKey client_publicKey = null;
+    PublicKey server_publicKey = null;
 
 
     boolean rsaOrNot, aesordes, exchangedFlag = false;
@@ -62,22 +63,6 @@ public class Server extends Thread {
         this.myChatActivity = chatActivity;
         this.rsaOrNot = chatActivity.rsaOrNot;
         this.aesordes = chatActivity.aesOrdes;
-    }
-
-    @Override
-    public void run() {
-        try {
-            ServerSocket serverSocket = new ServerSocket(PORT,5,address);
-            Socket socket = null;
-            while (true){
-                socket = serverSocket.accept();
-                System.out.println("Add connection："+socket.getInetAddress()+":"+socket.getPort());
-                new HandlerThread(socket);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         if(rsaOrNot == true  ){
             try {
                 encryptionRSA = new EncryptionRSA();
@@ -101,6 +86,23 @@ public class Server extends Thread {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void run() {
+        try {
+            ServerSocket serverSocket = new ServerSocket(PORT,5,address);
+            Socket socket = null;
+            while (true){
+                socket = serverSocket.accept();
+                System.out.println("Add connection："+socket.getInetAddress()+":"+socket.getPort());
+                new HandlerThread(socket);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
 
@@ -173,11 +175,7 @@ public class Server extends Thread {
             new Thread(this).start();
         }
 
-
-
         public void run() {
-            //Log.i("in ane doros shod",Chat.msgToSend );
-
             Log.i("resid inja: ", "1");
 
             try {
@@ -189,16 +187,18 @@ public class Server extends Thread {
                 // Processing client data
                 //System.out.println("Client sent over the content:" + clientInputStr);
 
-                //Chat.updateMessagesfromClient(clientInputStr);
-
                 byte[] buffer = new byte[1024];
                 int bytes;
 
-
                 while(client_publicKey == null){
+                    Log.i("try", "1");
                     try {
-                        oStream.write(server_publicKey.getEncoded());
-                        if(server_publicKey != null && iStream!=null ) {
+                        if( server_publicKey != null) {
+                            oStream.write(server_publicKey.getEncoded());
+                        }else{
+                            Log.i("serverpubkey is","null");
+                        }
+                        if( iStream != null ) {
                             bytes = iStream.read(buffer);
                             Log.i("number of bytes: ", String.valueOf(bytes));
                             if (bytes == -1) {
@@ -214,6 +214,9 @@ public class Server extends Thread {
                                 Log.i("client_publicKey", client_publicKey.toString() + " in server");
                                 updateMessagesfromClient("client publickey", client_publicKey.toString());
                             }
+                        }else {
+                            Log.i("client_publicKey while", "null.");
+
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -225,6 +228,7 @@ public class Server extends Thread {
 
                     if (client_publicKey != null){
                         exchangedFlag = true;
+                        break;
                     }else {
                         exchangedFlag = false;
                     }
@@ -290,25 +294,7 @@ public class Server extends Thread {
                         e.printStackTrace();
                     }
                 }
-                //chat.messages.setText(messages.getText() + "\n" + "client: " + clientInputStr);
 
-                // Reply to the client
-                //DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                //System.out.print("please enter:\t");
-//                // Send a line of keyboard input
-//                String s = new BufferedReader(new InputStreamReader(System.in)).readLine();
-                /*msgToSend = Chat.getMsgToSend();
-                if( msgToSend != null) {
-                    out.writeUTF(msgToSend);
-                    Chat.updateMessagesfromServer(msgToSend);
-                }
-                msgToSend = "";*/
-
-
-                //out.writeUTF("test back");
-
-                //out.close();
-                //input.close();
             } catch (Exception e) {
                 System.out.println("server run abnormal: " + e.getMessage());
             }
@@ -316,7 +302,7 @@ public class Server extends Thread {
     }
 
     public boolean exchangeKey() {
-        if(exchangedFlag == true)
+        if(exchangedFlag)
             return true;
         else
             return false;

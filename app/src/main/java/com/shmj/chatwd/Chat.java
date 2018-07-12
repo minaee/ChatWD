@@ -29,7 +29,7 @@ import java.util.ArrayList;
 
 public class Chat extends AppCompatActivity {
 
-    TextView otherDevicename, encyprionAlgo, key;
+    TextView otherDevicename, encyprionAlgo, myKey, opKey;
     Button sendButton, sendKey;
     EditText textTosend;
 
@@ -52,7 +52,7 @@ public class Chat extends AppCompatActivity {
     public static ListView encrypted_messages;
     public static ArrayAdapter decrypted_msg_adapter;
     String otherDeviceName;
-    public String  encrypted_msg = null;
+    public String  encrypted_msg = null, algo="";
 
     boolean rsaOrNot, aesOrdes  ;
 
@@ -62,20 +62,16 @@ public class Chat extends AppCompatActivity {
         setContentView(R.layout.chat_page);
         //WifiP2pInfo wifiP2pInfo = (WifiP2pInfo)getIntent().getSerializableExtra("WifiP2pInfo");
 
-        //Log.i("wifiP2pinfo Chat", String.valueOf(wifiP2pInfo));
-
         // receiving content from MainActivity
         serverOrClient = getIntent().getBooleanExtra("serverOrClient",true);
         wifiP2pInfo = getIntent().getExtras().getParcelable("WifiP2pInfo");
         otherDeviceName  = getIntent().getExtras().getParcelable("otherDeviceName");
         rsaOrNot = getIntent().getBooleanExtra("rsaOrNot", true);
         aesOrdes = getIntent().getBooleanExtra("aesOrdes", true);
+        algo = getIntent().getStringExtra("algo");
         Log.i("rsa - aes", String.valueOf(rsaOrNot) + " - " + String.valueOf(aesOrdes) + " in chat");
         Log.i("serverOrClient", serverOrClient + " in chat");
-
-
-
-
+        Log.i("algo", algo + " in chat");
 
         // creating server o client instances
         if(wifiP2pInfo != null) {
@@ -89,7 +85,8 @@ public class Chat extends AppCompatActivity {
         decrypted_messages = (ListView) findViewById(R.id.decrypt_messages);
         encrypted_messages = (ListView) findViewById(R.id.encrypt_messages);
         encyprionAlgo = (TextView) findViewById(R.id.otherDeviceName);
-        key = (TextView) findViewById(R.id.myKey);
+        myKey = (TextView) findViewById(R.id.myKey);
+        opKey = (TextView) findViewById(R.id.opponentKey);
 
         //setting adapter for listview(chat messages)
         decrypted_msg_adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, decrypted_msg_content );
@@ -102,8 +99,9 @@ public class Chat extends AppCompatActivity {
         // name of chat partner
         otherDevicename = (TextView) findViewById(R.id.otherDeviceName);
         otherDevicename.setText("this is a new chat with: " + otherDeviceName);
-        encyprionAlgo.setText( encyprionAlgo.getText().toString() + "AES");
-        //key.setText(key.getText().toString() + secretKeyString);
+        encyprionAlgo.setText( encyprionAlgo.getText().toString() + algo);
+        myKey.setText("opkey received ?: ");
+
         msgToSend = "thisShitIsNull";
 
         try {
@@ -143,8 +141,10 @@ public class Chat extends AppCompatActivity {
             if(server.exchangeKey()){
                 sendButton.setEnabled(true);
                 Log.i("key exchanged in","server is true");
+                opKey.setText("yes");
             }else{
                 Log.i("key exchanged in","server is false");
+                opKey.setText("no");
             }
 
         }else if(!serverOrClient){    // for client
@@ -153,8 +153,10 @@ public class Chat extends AppCompatActivity {
             if(client.exchangeKey()){
                 sendButton.setEnabled(true);
                 Log.i("key exchanged in","client is true");
+                opKey.setText("yes");
             }else{
                 Log.i("key exchanged in","client is false");
+                opKey.setText("no");
             }
 
         }else

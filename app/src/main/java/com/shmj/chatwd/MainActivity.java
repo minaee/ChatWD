@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity  {
     private ArrayAdapter myAdapter;
     ArrayList<String> deviceNames;
 
-    String otherDeviceName = "";
+    String otherDeviceName = "", algo="";
 
     boolean rsaOrNot, aesOrdes;
 
@@ -90,10 +90,6 @@ public class MainActivity extends AppCompatActivity  {
         mChannel = mManager.initialize(this, getMainLooper(), null);
         mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
 
-
-
-//adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -125,6 +121,7 @@ public class MainActivity extends AppCompatActivity  {
                 Log.i("view tag", v.getTag().toString() +" "+"AES" );
                 rsaOrNot = false;
                 aesOrdes = true;
+                algo = "AES";
                 Log.i("rsa - aes", rsaOrNot + " - " + aesOrdes );
             }
         });
@@ -134,6 +131,7 @@ public class MainActivity extends AppCompatActivity  {
                 Log.i("v tag", v.getTag().toString()+" "+"DES" );
                 rsaOrNot = false;
                 aesOrdes = false;
+                algo = "DES";
                 Log.i("rsa - aes", rsaOrNot + " - " + aesOrdes );
             }
         });
@@ -143,34 +141,10 @@ public class MainActivity extends AppCompatActivity  {
                 Log.i("v tag", v.getTag().toString() +" "+"RSA");
                 rsaOrNot = true;
                 aesOrdes = false;
+                algo = "RSA";
                 Log.i("rsa - aes", rsaOrNot + " - " + aesOrdes );
             }
         });
-
-        /*radioAlgoGroup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String radioID = String.valueOf(v.getTag());
-                Log.i("radioID", radioID );
-                switch (radioID){
-                    case "AES":
-                        rsaOrNot = false;
-                        aesOrdes = true;
-                        Log.i("rsa - aes", String.valueOf(rsaOrNot) + " - " + String.valueOf(aesOrdes));
-                        break;
-                    case "DES":
-                        rsaOrNot = false;
-                        aesOrdes = false;
-                        Log.i("rsa - aes", String.valueOf(rsaOrNot) + " - " + String.valueOf(aesOrdes));
-                        break;
-                    case "RSA":
-                        rsaOrNot = true;
-                        Log.i("rsa - aes", String.valueOf(rsaOrNot) + " - " + String.valueOf(aesOrdes));
-                        break;
-                }
-            }
-        });*/
-
     }
 
 
@@ -295,6 +269,7 @@ public class MainActivity extends AppCompatActivity  {
         chatPage.putExtra("otherDeviceName", otherDeviceName);
         chatPage.putExtra("rsaOrNot", rsaOrNot);
         chatPage.putExtra("aesOrdes", aesOrdes);
+        chatPage.putExtra("algo", algo);
         startActivity(chatPage);
     }
 
