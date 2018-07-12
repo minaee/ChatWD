@@ -14,51 +14,43 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/linearLayout_algo"
+        app:layout_constraintBottom_toTopOf="@id/radioAlgo"
         android:onClick="search" />
 
-    <LinearLayout
-
-        android:id="@+id/linearLayout_algo"
+    <RadioGroup
+        android:id="@+id/radioAlgo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:baselineAligned="false"
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@id/listitem"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/searchButton"  >
+        app:layout_constraintTop_toBottomOf="@id/searchButton">
 
-        <RadioGroup
-            android:id="@+id/radioAlgo"
+        <RadioButton
+            android:id="@+id/radioAES"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/aes"
+            android:tag="@string/aes"
+            android:layout_marginRight="@android:dimen/app_icon_size" android:layout_marginEnd="@android:dimen/app_icon_size" />
+
+        <RadioButton
+            android:id="@+id/radioDES"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/des"
+            android:tag="@string/des"
+            android:layout_marginRight="@android:dimen/app_icon_size" android:layout_marginEnd="@android:dimen/app_icon_size" />
+
+        <RadioButton
+            android:id="@+id/radioRSA"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginHorizontal="@android:dimen/app_icon_size">
+            android:text="@string/rsa"
+            android:tag="@string/rsa" />
 
-            <RadioButton
-                android:id="@+id/radioAES"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/aes"
-                android:layout_marginRight="@android:dimen/app_icon_size"/>
-
-            <RadioButton
-                android:id="@+id/radioDES"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/des"
-                android:layout_marginRight="@android:dimen/app_icon_size" />
-
-            <RadioButton
-                android:id="@+id/radioRSA"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/rsa" />
-
-        </RadioGroup>
-
-    </LinearLayout>
+    </RadioGroup>
 
 
     <ListView
@@ -68,7 +60,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout_algo" />
+        app:layout_constraintTop_toBottomOf="@+id/radioAlgo" />
 
 
 

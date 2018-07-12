@@ -22,6 +22,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,12 +37,12 @@ public class MainActivity extends AppCompatActivity  {
     TextView devicesList;
     ListView listView;
     static TextView msg;
-    Spinner algoPicker;
     Intent chatPage;
+    RadioGroup radioAlgoGroup;
+    RadioButton radioaes, radiodes,radiorsa;
 
     boolean serverOrClient;
-    ArrayList<String> algoList;
-    ArrayAdapter<String> algo_Adapter;
+
 
     private final IntentFilter intentFilter = new IntentFilter();
     WifiP2pManager mManager;
@@ -57,7 +59,7 @@ public class MainActivity extends AppCompatActivity  {
 
     String otherDeviceName = "";
 
-    boolean rsaOrNot = true;
+    boolean rsaOrNot, aesOrdes;
 
     public void showMsg (String message){
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
@@ -88,15 +90,9 @@ public class MainActivity extends AppCompatActivity  {
         mChannel = mManager.initialize(this, getMainLooper(), null);
         mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
 
-        algoPicker = (Spinner)findViewById(R.id.algoPicker);
-        algoList = new ArrayList<>();
-        algoList.add("AES");
-        algoList.add("DES");
-        algo_Adapter = new ArrayAdapter<String>( getApplicationContext() , android.R.layout.simple_spinner_item, algoList );
-        algo_Adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
 
 //adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        algoPicker.setAdapter(algo_Adapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -109,8 +105,6 @@ public class MainActivity extends AppCompatActivity  {
                     case WifiP2pDevice.INVITED:
                         connect(device);
                         otherDeviceName = device.deviceName;
-                        //openChat( wifiP2pInfo2 );
-                        //openChat();
                         break;
                     case WifiP2pDevice.FAILED:
                     case WifiP2pDevice.UNAVAILABLE:
@@ -120,7 +114,65 @@ public class MainActivity extends AppCompatActivity  {
             }
         });
 
+        radioAlgoGroup = (RadioGroup) findViewById(R.id.radioAlgo);
+        radioaes = (RadioButton) findViewById(R.id.radioAES);
+        radiodes = (RadioButton) findViewById(R.id.radioDES);
+        radiorsa = (RadioButton) findViewById(R.id.radioRSA);
+
+        radioaes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i("view tag", v.getTag().toString() +" "+"AES" );
+                rsaOrNot = false;
+                aesOrdes = true;
+                Log.i("rsa - aes", rsaOrNot + " - " + aesOrdes );
+            }
+        });
+        radiodes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i("v tag", v.getTag().toString()+" "+"DES" );
+                rsaOrNot = false;
+                aesOrdes = false;
+                Log.i("rsa - aes", rsaOrNot + " - " + aesOrdes );
+            }
+        });
+        radiorsa.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i("v tag", v.getTag().toString() +" "+"RSA");
+                rsaOrNot = true;
+                aesOrdes = false;
+                Log.i("rsa - aes", rsaOrNot + " - " + aesOrdes );
+            }
+        });
+
+        /*radioAlgoGroup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String radioID = String.valueOf(v.getTag());
+                Log.i("radioID", radioID );
+                switch (radioID){
+                    case "AES":
+                        rsaOrNot = false;
+                        aesOrdes = true;
+                        Log.i("rsa - aes", String.valueOf(rsaOrNot) + " - " + String.valueOf(aesOrdes));
+                        break;
+                    case "DES":
+                        rsaOrNot = false;
+                        aesOrdes = false;
+                        Log.i("rsa - aes", String.valueOf(rsaOrNot) + " - " + String.valueOf(aesOrdes));
+                        break;
+                    case "RSA":
+                        rsaOrNot = true;
+                        Log.i("rsa - aes", String.valueOf(rsaOrNot) + " - " + String.valueOf(aesOrdes));
+                        break;
+                }
+            }
+        });*/
+
     }
+
 
     private void initFilter() {
         //  Indicates a change in the Wi-Fi P2P status.
@@ -237,10 +289,12 @@ public class MainActivity extends AppCompatActivity  {
     public void openChat(WifiP2pInfo wifiP2pInfo, boolean serverOrClient){  //false for client and vice versa
         Log.i("wifiP2pinfo MActivity", String.valueOf(wifiP2pInfo));
         //serverOrClient = false;
+        Log.i("rsaOrNot - aesordes", rsaOrNot +" "+ aesOrdes + " in main");
         chatPage = new Intent(getApplicationContext(), Chat.class).putExtra("serverOrClient",serverOrClient);
         chatPage.putExtra("WifiP2pInfo",wifiP2pInfo);
         chatPage.putExtra("otherDeviceName", otherDeviceName);
         chatPage.putExtra("rsaOrNot", rsaOrNot);
+        chatPage.putExtra("aesOrdes", aesOrdes);
         startActivity(chatPage);
     }
 

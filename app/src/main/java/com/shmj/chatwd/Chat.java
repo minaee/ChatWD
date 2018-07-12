@@ -41,7 +41,7 @@ public class Chat extends AppCompatActivity {
     WifiP2pInfo wifiP2pInfo;
     public EncryptionAES encryptionAES;
     //String secretKeyString = "1111111111111111";   //16 digit secret key   AES
-    String secretKeyString = "11111111";   //16 digit secret key DES
+    String secretKeyString; // = "11111111";   //16 digit secret key DES
 
     public EncryptionRSA encryptionRSA;
 
@@ -54,7 +54,7 @@ public class Chat extends AppCompatActivity {
     String otherDeviceName;
     public String  encrypted_msg = null;
 
-    boolean rsaOrNot  ;
+    boolean rsaOrNot, aesOrdes  ;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -69,6 +69,10 @@ public class Chat extends AppCompatActivity {
         wifiP2pInfo = getIntent().getExtras().getParcelable("WifiP2pInfo");
         otherDeviceName  = getIntent().getExtras().getParcelable("otherDeviceName");
         rsaOrNot = getIntent().getBooleanExtra("rsaOrNot", true);
+        aesOrdes = getIntent().getBooleanExtra("aesOrdes", true);
+        Log.i("rsa - aes", String.valueOf(rsaOrNot) + " - " + String.valueOf(aesOrdes) + " in chat");
+        Log.i("serverOrClient", serverOrClient + " in chat");
+
 
 
 
@@ -103,15 +107,25 @@ public class Chat extends AppCompatActivity {
         msgToSend = "thisShitIsNull";
 
         try {
-            encryptionAES = new EncryptionAES(secretKeyString.getBytes());
-            encryptionRSA = new EncryptionRSA();
+            if(rsaOrNot == false && aesOrdes == true) {
+                secretKeyString = "1111111111111111";
+                encryptionAES = new EncryptionAES(secretKeyString.getBytes(), aesOrdes);
+                Log.i("rsa - aes - AES created", rsaOrNot + " - "+aesOrdes + " in chat");
+            }else if(rsaOrNot == false && aesOrdes == false){
+                secretKeyString = "11111111";
+                encryptionAES = new EncryptionAES(secretKeyString.getBytes(), aesOrdes);
+                Log.i("rsa - aes - DES created", rsaOrNot + " - "+aesOrdes + " in chat");
+            }else if(rsaOrNot == true){
+                encryptionRSA = new EncryptionRSA();
+                Log.i("rsa - aes - RSA created", rsaOrNot + " - "+aesOrdes + " in chat");
+            }
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
 
 
         //rsaOrNot = true;
-        if(rsaOrNot = true){
+        if(rsaOrNot == true){
             sendKey.setVisibility(View.VISIBLE);
             sendButton.setEnabled(false);
         }
@@ -123,25 +137,28 @@ public class Chat extends AppCompatActivity {
     }
 
     public void sendKeyToOpponent(View view){
-        if(serverOrClient == true ){ // for server
-                /*boolean isExchanged =server.exchangeKey();
-            if(isExchanged = true){
+        if(serverOrClient){ // for server
+            Log.i("key exchanged in","server begins");
+            //boolean isExchanged = server.exchangeKey();
+            if(server.exchangeKey()){
                 sendButton.setEnabled(true);
-            }*/
-            Log.i("msg to send server: ",msgToSend);
-
-        }else if(serverOrClient == false && encrypted_msg != null){    // for client
-
-            boolean isExchanged = client.exchangeKey();
-            if(isExchanged == true){
-                sendButton.setEnabled(true);
+                Log.i("key exchanged in","server is true");
+            }else{
+                Log.i("key exchanged in","server is false");
             }
-            Log.i("msg to send client: ",msgToSend);
 
-        } else {
-            Log.i("encrypted message: ", "is null.");
-            showMsg("encrypted message is null.");
-        }
+        }else if(!serverOrClient){    // for client
+            Log.i("key exchanged in","client begins");
+            //boolean isExchanged = client.exchangeKey();
+            if(client.exchangeKey()){
+                sendButton.setEnabled(true);
+                Log.i("key exchanged in","client is true");
+            }else{
+                Log.i("key exchanged in","client is false");
+            }
+
+        }else
+            Log.i("key exchanged: ","failed");
     }
 
     public void sendButton(View view){
@@ -150,14 +167,18 @@ public class Chat extends AppCompatActivity {
             msgToSend = String.valueOf(textTosend2.getText());
 
 
+            Log.i("rsa - aes", rsaOrNot + " - " + aesOrdes + " in sendbutton");
+            Log.i("serverOrClient", serverOrClient + " in sendbutton");
 
-            if(serverOrClient == true && encrypted_msg != null){ // for server
+            if(serverOrClient == true ){ // for server
 
-                if( rsaOrNot = true){
+                if( rsaOrNot == true){
+                    Log.i("resid inja", "000 in chat");
                     server.write(msgToSend.getBytes());
 
-                }else {
+                }else if(rsaOrNot == false){
                     try {
+                        Log.i("resid inja", "111 in chat");
                         //encrypted_msg = encryptionAES.encryptMSG(secretKeyString, msgToSend);
                         encrypted_msg = encryptionAES.encrypt(msgToSend);
                     } catch (Exception e) {
@@ -167,7 +188,7 @@ public class Chat extends AppCompatActivity {
                 }
                 Log.i("msg to send server: ",msgToSend);
 
-            }else if(serverOrClient == false && encrypted_msg != null){    // for client
+            }else if(serverOrClient == false ){    // for client
 
                 if(rsaOrNot == true ){
                     client.write(msgToSend.getBytes());

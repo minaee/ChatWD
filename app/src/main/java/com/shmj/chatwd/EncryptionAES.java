@@ -28,9 +28,12 @@ public class EncryptionAES {
 
 
 
-    public EncryptionAES( byte[] keyValue) throws NoSuchAlgorithmException {
+    public EncryptionAES( byte[] keyValue, boolean algo) throws NoSuchAlgorithmException {
         this.keyValue = keyValue;
-        algorithm = "RSA";
+        if(algo == true)
+            algorithm = "AES";
+        else
+            algorithm = "DES";
     }
 
 
@@ -81,8 +84,7 @@ public class EncryptionAES {
         byte[] result = new byte[len];
         for (int i = 0; i < len; i++) {
             Log.i("i= ", i + " toByte: "+ hexString.substring(2 * i, 2 * i + 2));
-            result[i] = Integer.valueOf(hexString.substring(2 * i, 2 * i + 2),
-                    16).byteValue();
+            result[i] = Integer.valueOf( hexString.substring(2 * i, 2 * i + 2),16 ).byteValue();
         }
         return result;
     }

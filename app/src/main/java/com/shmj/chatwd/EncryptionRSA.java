@@ -31,13 +31,13 @@ public class EncryptionRSA {
     public EncryptionRSA() throws NoSuchAlgorithmException {
         try {
             kpg = KeyPairGenerator.getInstance("RSA");
+            kpg.initialize(1024);
+            kp = kpg.genKeyPair();
+            this.publicKey = kp.getPublic();
+            this.privateKey = kp.getPrivate();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        kpg.initialize(1024);
-        kp = kpg.genKeyPair();
-        publicKey = kp.getPublic();
-        privateKey = kp.getPrivate();
     }
 
 
