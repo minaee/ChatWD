@@ -4,6 +4,7 @@ package com.shmj.chatwd;
  * Created by Shahriar on 7/4/2018.
  */
 
+import android.content.SharedPreferences;
 import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +25,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import static android.content.Context.MODE_PRIVATE;
 import static com.shmj.chatwd.Chat.updateMessagesfromClient;
 import static com.shmj.chatwd.Chat.updateMessagesfromServer;
 import static com.shmj.chatwd.Chat.updateMessagesfromClient;
@@ -51,8 +53,8 @@ public class Server extends Thread {
     public byte[] decrypted_msg = null;
 
     public EncryptionRSA encryptionRSA;
-    PublicKey client_publicKey = null;
-    PublicKey server_publicKey = null;
+    public PublicKey client_publicKey = null;
+    PrivateKey server_PrivateKey = null;
 
 
     boolean rsaOrNot, aesordes, exchangedFlag = false;
@@ -63,10 +65,39 @@ public class Server extends Thread {
         this.myChatActivity = chatActivity;
         this.rsaOrNot = chatActivity.rsaOrNot;
         this.aesordes = chatActivity.aesOrdes;
+        Log.i("rsa - aes", rsaOrNot + " - " + aesordes + " in SERVER");
+
+        //storing keys to sharedprefrences
+
+
+    }
+
+    @Override
+    public void run() {
+        try {
+            ServerSocket serverSocket = new ServerSocket(PORT,5,address);
+            Socket socket = null;
+            while (true){
+                socket = serverSocket.accept();
+                System.out.println("Add connection："+socket.getInetAddress()+":"+socket.getPort());
+                new HandlerThread(socket);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Log.i("resid inja", "before if rsaornot +rsa "+rsaOrNot );
+
+
         if(rsaOrNot == true  ){
             try {
-                encryptionRSA = new EncryptionRSA();
-                server_publicKey = encryptionRSA.publicKey;
+                encryptionRSA = new EncryptionRSA( );
+                server_PrivateKey = myChatActivity.server_PrivateKey;
+                client_publicKey = myChatActivity.client_PublicKey;
+
+
+                Log.i("server private server", server_PrivateKey.toString() );
+                Log.i("client public server", client_publicKey.toString() );
 
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
@@ -86,22 +117,6 @@ public class Server extends Thread {
                 e.printStackTrace();
             }
         }
-    }
-
-    @Override
-    public void run() {
-        try {
-            ServerSocket serverSocket = new ServerSocket(PORT,5,address);
-            Socket socket = null;
-            while (true){
-                socket = serverSocket.accept();
-                System.out.println("Add connection："+socket.getInetAddress()+":"+socket.getPort());
-                new HandlerThread(socket);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
 
     }
 
@@ -188,59 +203,12 @@ public class Server extends Thread {
                 //System.out.println("Client sent over the content:" + clientInputStr);
 
                 byte[] buffer = new byte[1024];
-                int bytes;
-
-                while(client_publicKey == null){
-                    Log.i("try", "1");
-                    try {
-                        if( server_publicKey != null) {
-                            oStream.write(server_publicKey.getEncoded());
-                        }else{
-                            Log.i("serverpubkey is","null");
-                        }
-                        if( iStream != null ) {
-                            bytes = iStream.read(buffer);
-                            Log.i("number of bytes: ", String.valueOf(bytes));
-                            if (bytes == -1) {
-                                break;
-                            }
-                            if (buffer != null) {
-                                Log.i("buffer clientkey", new String(buffer, "UTF-8"));
-                                byte[] buffer2 = new byte[bytes];
-                                for (int i = 0; i < bytes; i++) {
-                                    buffer2[i] = buffer[i];
-                                }
-                                client_publicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(buffer2));
-                                Log.i("client_publicKey", client_publicKey.toString() + " in server");
-                                updateMessagesfromClient("client publickey", client_publicKey.toString());
-                            }
-                        }else {
-                            Log.i("client_publicKey while", "null.");
-
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchAlgorithmException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeySpecException e) {
-                        e.printStackTrace();
-                    }
-
-                    if (client_publicKey != null){
-                        exchangedFlag = true;
-                        break;
-                    }else {
-                        exchangedFlag = false;
-                    }
-                }
-
-                 buffer = new byte[1024];
-                 //bytes = 0 ;
+                int bytes = 0 ;
                 while( !startReceive ){
                     try{
                         if(iStream!=null) {
 
-                            if (rsaOrNot == true && exchangedFlag == true) {
+                            if (rsaOrNot) {
                                 Log.i("resid inja: ", "2");
                                 bytes = iStream.read(buffer);
                                 Log.i("number of bytes: ", String.valueOf(bytes));
@@ -255,16 +223,15 @@ public class Server extends Thread {
                                     }
 
                                     String encrypted_msg = new String(buffer2, "UTF-8");
-                                    Log.i("before decrypt Server: ", encrypted_msg);
                                     String dedcrypted = null;
-                                    dedcrypted = encryptionAES.decrypt(encrypted_msg);
+                                    dedcrypted = encryptionRSA.RSADecrypt(buffer2, server_PrivateKey);
                                     //String decrypted_msg_string = new String(decrypted_msg, "UTF-8");
                                     Log.i("client returns: ", dedcrypted);
                                     updateMessagesfromClient(encrypted_msg, dedcrypted);
                                 }
 
 
-                            } else if (rsaOrNot == false) {
+                            } else if (!rsaOrNot) {
                                 Log.i("resid inja: ", "2");
                                 bytes = iStream.read(buffer);
                                 Log.i("number of bytes: ", String.valueOf(bytes));

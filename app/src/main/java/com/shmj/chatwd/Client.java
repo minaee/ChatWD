@@ -14,6 +14,7 @@ import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
@@ -45,8 +46,8 @@ public class Client extends Thread {
     String decrypted_msg = null;
 
     public EncryptionRSA encryptionRSA;
-    PublicKey client_publicKey = null;
-    PublicKey server_publicKey = null;
+    public PrivateKey client_PrivateKey= null;
+    public PublicKey server_publicKey = null;
 
     boolean rsaOrNot, aesordes;
     public boolean exchangedFlag;
@@ -57,16 +58,26 @@ public class Client extends Thread {
         this.chatActivity = chatActivity;
         this.rsaOrNot = chatActivity.rsaOrNot;
         this.aesordes = chatActivity.aesOrdes;
+        Log.i("rsa - aes", rsaOrNot + " - " + aesordes + " in CLIENT");
+
     }
 
 
     @Override
     public void run() {
 
+        Log.i("resid inja", "before if rsaornot +rsa "+rsaOrNot );
+
         if(rsaOrNot == true ){
             try {
                 encryptionRSA = new EncryptionRSA();
-                client_publicKey = encryptionRSA.publicKey;
+                client_PrivateKey = chatActivity.client_PrivateKey;
+                server_publicKey = chatActivity.server_PublicKey;
+
+                Log.i("server public server", server_publicKey.toString() );
+                Log.i("client private server", client_PrivateKey.toString() );
+
+
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
             }
@@ -112,56 +123,7 @@ public class Client extends Thread {
             }
 
             byte[] buffer = new byte[1024];
-            int bytes;
-            while(server_publicKey == null){
-                Log.i("try", "1");
-
-                try {
-                    Log.i("try", "2");
-
-                    if(client_publicKey != null) {
-                        oStream.write(client_publicKey.getEncoded());
-                    }else{
-                        Log.i("clientpubkey is","null");
-                    }
-                    if( iStream != null ) {
-                        bytes = iStream.read(buffer);
-                        Log.i("buffer serverkey: ", String.valueOf(bytes));
-                        if (bytes == -1) {
-                            break;
-                        }
-                        if (buffer != null) {
-                            byte[] buffer2 = new byte[bytes];
-                            for (int i = 0; i < bytes; i++) {
-                                //mBuffer.set(i, buffer[i]);
-                                buffer2[i] = buffer[i];
-                            }
-                            server_publicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(buffer2));
-                            Log.i("server_publicKey", server_publicKey.toString() + " in keyexchanged of client");
-                            chatActivity.updateMessagesfromServer("server public key", server_publicKey.toString());
-                        }
-                    }else {
-                        Log.i("client_publicKey while", "null.");
-
-                    }
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (NoSuchAlgorithmException e) {
-                    e.printStackTrace();
-                } catch (InvalidKeySpecException e) {
-                    e.printStackTrace();
-                }
-                if(server_publicKey != null) {
-                    exchangedFlag = true;
-                    break;
-                }else {
-                    exchangedFlag = false;
-                }
-            }
-
-            buffer = new byte[1024];
-            // int bytes = 0;
+            int bytes = 0;
             Log.i("resid inja: ", "1");
 
             while (!startReceive) {
@@ -169,7 +131,7 @@ public class Client extends Thread {
                     if (iStream != null) {
 
                         Log.i("rsaOrNot client", String.valueOf(rsaOrNot));
-                        if (rsaOrNot == true && exchangedFlag == true) {
+                        if (rsaOrNot) {
                             //oStream.write(client_publicKey.getEncoded());
                             bytes = iStream.read(buffer);
                             Log.i("number of bytes: ", String.valueOf(bytes));
@@ -186,7 +148,7 @@ public class Client extends Thread {
                                 String encrypted_msg = new String(buffer2, "UTF-8");
                                 Log.i("before decrypt Client: ", encrypted_msg);
                                 //decrypted_msg = encryptionAES.decryptMSG(secretKeyString, buffer);
-                                decrypted_msg = encryptionRSA.RSADecrypt(buffer2);
+                                decrypted_msg = encryptionRSA.RSADecrypt(buffer2, client_PrivateKey);
                                 //String decrypted_msg_string = new String(decrypted_msg, "UTF-8");
                                 Log.i("server returns: ", decrypted_msg);
                                 chatActivity.updateMessagesfromServer(encrypted_msg, decrypted_msg);
@@ -248,7 +210,7 @@ public class Client extends Thread {
      * @param buffer byte[] array that represents data to write. For example, a String converted in byte[] with ".getBytes();"
      */
     public void write(byte[] buffer) {
-        if(rsaOrNot ==true){
+        if(rsaOrNot){
             try {
                 String encrypted_msg = new String(buffer, "UTF-8");
                 byte[] encrypted_byte_msg = encryptionRSA.RSAEncrypt(encrypted_msg, server_publicKey);
@@ -293,29 +255,6 @@ public class Client extends Thread {
             return false;
     }
 
-    public boolean sendpubKey() {
-        try {
-            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-            ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-
-            while(server_publicKey == null) {
-                outputStream.writeObject(client_publicKey);
-                server_publicKey = (PublicKey) inputStream.readObject();
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-
-        if (server_publicKey != null) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 
 }
 

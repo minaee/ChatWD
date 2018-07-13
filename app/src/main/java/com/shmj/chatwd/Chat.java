@@ -4,6 +4,8 @@ package com.shmj.chatwd;
  * Created by Shahriar on 7/4/2018.
  */
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -18,8 +20,15 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
+import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 
 
@@ -43,7 +52,8 @@ public class Chat extends AppCompatActivity {
     //String secretKeyString = "1111111111111111";   //16 digit secret key   AES
     String secretKeyString; // = "11111111";   //16 digit secret key DES
 
-    public EncryptionRSA encryptionRSA;
+    private EncryptionRSA encryptionRSA_server;
+    private EncryptionRSA encryptionRSA_client;
 
     public static ArrayList<String> encrypted_msg_content = new ArrayList<>();
     public static ArrayAdapter encrypted_msg_adapter;
@@ -55,6 +65,9 @@ public class Chat extends AppCompatActivity {
     public String  encrypted_msg = null, algo="";
 
     boolean rsaOrNot, aesOrdes  ;
+    SharedPreferences sharedPref;
+    PublicKey  server_PublicKey, client_PublicKey;
+    PrivateKey server_PrivateKey, client_PrivateKey;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -102,7 +115,11 @@ public class Chat extends AppCompatActivity {
         encyprionAlgo.setText( encyprionAlgo.getText().toString() + algo);
         myKey.setText("opkey received ?: ");
 
+
         msgToSend = "thisShitIsNull";
+
+
+
 
         try {
             if(rsaOrNot == false && aesOrdes == true) {
@@ -114,7 +131,35 @@ public class Chat extends AppCompatActivity {
                 encryptionAES = new EncryptionAES(secretKeyString.getBytes(), aesOrdes);
                 Log.i("rsa - aes - DES created", rsaOrNot + " - "+aesOrdes + " in chat");
             }else if(rsaOrNot == true){
-                encryptionRSA = new EncryptionRSA();
+
+                sharedPref = this.getSharedPreferences("com.shmj.chatwd", Context.MODE_PRIVATE);
+
+                if( sharedPref.contains("server_PublicKey") && sharedPref.contains("server_PrivateKey")
+                        && sharedPref.contains("client_PublicKey") && sharedPref.contains("client_PrivateKey") ){
+                    loadUpKeys();
+                }else {
+                    try {
+
+                        encryptionRSA_server = new EncryptionRSA();
+                        server_PublicKey = encryptionRSA_server.publicKey;
+                        server_PrivateKey = encryptionRSA_server.privateKey;
+                        sharedPref.edit().putString("server_PublicKey", server_PublicKey.toString()).apply();
+                        sharedPref.edit().putString("server_PrivateKey", server_PrivateKey.toString()).apply();
+                        Log.i("server public before", server_PublicKey.toString());
+                        Log.i("server private before", server_PrivateKey.toString());
+
+                        encryptionRSA_client = new EncryptionRSA();
+                        client_PublicKey = encryptionRSA_client.publicKey;
+                        client_PrivateKey = encryptionRSA_client.privateKey;
+                        sharedPref.edit().putString("client_PublicKey", client_PublicKey.toString()).apply();
+                        sharedPref.edit().putString("client_PrivateKey", client_PrivateKey.toString()).apply();
+                        Log.i("client public before", client_PublicKey.toString());
+                        Log.i("client private before", client_PrivateKey.toString());
+
+                    } catch (NoSuchAlgorithmException e) {
+                        e.printStackTrace();
+                    }
+                }
                 Log.i("rsa - aes - RSA created", rsaOrNot + " - "+aesOrdes + " in chat");
             }
         } catch (NoSuchAlgorithmException e) {
@@ -125,7 +170,7 @@ public class Chat extends AppCompatActivity {
         //rsaOrNot = true;
         if(rsaOrNot == true){
             sendKey.setVisibility(View.VISIBLE);
-            sendButton.setEnabled(false);
+            //sendButton.setEnabled(false);
         }
 
     }
@@ -139,7 +184,7 @@ public class Chat extends AppCompatActivity {
             Log.i("key exchanged in","server begins");
             //boolean isExchanged = server.exchangeKey();
             if(server.exchangeKey()){
-                sendButton.setEnabled(true);
+                //sendButton.setEnabled(true);
                 Log.i("key exchanged in","server is true");
                 opKey.setText("yes");
             }else{
@@ -151,7 +196,7 @@ public class Chat extends AppCompatActivity {
             Log.i("key exchanged in","client begins");
             //boolean isExchanged = client.exchangeKey();
             if(client.exchangeKey()){
-                sendButton.setEnabled(true);
+                //sendButton.setEnabled(true);
                 Log.i("key exchanged in","client is true");
                 opKey.setText("yes");
             }else{
@@ -292,6 +337,54 @@ public class Chat extends AppCompatActivity {
                 decrypted_messages.setSelection(decrypted_msg_adapter.getCount() - 1);
             }
         });
+    }
+
+
+    private void generateKeys() {
+
+
+
+    }
+
+
+    private boolean loadUpKeys() {
+        String spu=null, spr=null, cpu=null, cpr=null;
+        spu = sharedPref.getString("server_PublicKey", null);
+        spr = sharedPref.getString("server_PrivateKey", null);
+        cpu = sharedPref.getString("client_PublicKey", null);
+        cpr = sharedPref.getString("client_PrivateKey", null);
+
+        Log.i("server public after", spu+"." );
+        Log.i("server private after", spr+"." );
+
+        Log.i("client public after", cpu+"." );
+        Log.i("client private after", cpr+"." );
+
+        try {
+
+            server_PublicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(spu.getBytes()));
+            server_PrivateKey = KeyFactory.getInstance("RSA").generatePrivate(new X509EncodedKeySpec(spr.getBytes()));
+
+            Log.i("server public after", server_PublicKey.toString() );
+            Log.i("server private after", server_PrivateKey.toString() );
+
+            client_PublicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(cpu.getBytes()));
+            client_PrivateKey = KeyFactory.getInstance("RSA").generatePrivate(new X509EncodedKeySpec(cpr.getBytes()));
+
+            Log.i("client public after", client_PublicKey.toString() );
+            Log.i("client private after", client_PrivateKey.toString() );
+
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        if(server_PrivateKey != null && server_PublicKey != null && client_PrivateKey != null && client_PublicKey != null){
+            return true;
+        }else{
+            return false;
+        }
     }
 
 }

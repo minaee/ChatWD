@@ -38,6 +38,8 @@ public class EncryptionRSA {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+
+
     }
 
 
@@ -52,11 +54,11 @@ public class EncryptionRSA {
         return encryptedBytes;
     }
 
-    public String RSADecrypt(final byte[] encryptedBytes) throws NoSuchAlgorithmException, NoSuchPaddingException,
+    public String RSADecrypt(final byte[] encryptedBytes, PrivateKey myPrivateKey) throws NoSuchAlgorithmException, NoSuchPaddingException,
             InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 
         cipher1 = Cipher.getInstance("RSA");
-        cipher1.init(Cipher.DECRYPT_MODE, privateKey); //privateKey);
+        cipher1.init(Cipher.DECRYPT_MODE, myPrivateKey); //privateKey);
         decryptedBytes = cipher1.doFinal(encryptedBytes);
         decrypted = new String(decryptedBytes);
         System.out.println("DDecrypted?????" + decrypted);
